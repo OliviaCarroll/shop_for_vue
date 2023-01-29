@@ -1,18 +1,50 @@
 <template>
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <div v-if="isLoading">
+      Loading...
+    </div>
+    <div class="product-list" v-else>
+      <ProductItem v-for="product in products" :key="product.id" :product="product" @addCart="addElementToCart"
+        @goDetail="goDetail" />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+import { defineComponent } from 'vue';
+import useProducts from '@/composables/useProducts';
+import ProductItem from '@/components/ProductItem.vue'
+import { useCart } from '@/composables/useCart';
+import products from '@/store/products';
+import { Product } from '@/models/product';
+import { useRouter } from 'vue-router';
 
-@Options({
+export default defineComponent({
+  name: 'HomeView',
   components: {
-    HelloWorld,
+    ProductItem,
   },
-})
-export default class HomeView extends Vue {}
+  setup() {
+    const { products, isLoading, fetchProducts } = useProducts();
+    const { addElementToCart } = useCart();
+    const router = useRouter();
+    fetchProducts()
+
+    return { 
+      products, 
+      isLoading, 
+      addElementToCart, 
+      goDetail: (product: Product) => router.push({ name: 'detail', params: { id: product.id } }) }
+  }
+});
 </script>
+
+<style scoped>
+.product-list {
+  display: flex;
+  flex-flow: row wrap;
+  width: 100%;
+  gap: 1rem 1rem;
+}
+</style>
